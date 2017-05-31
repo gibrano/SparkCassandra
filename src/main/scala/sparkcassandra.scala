@@ -5,6 +5,8 @@ import org.apache.spark.sql.DataFrame
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.rdd._
 import org.apache.spark.sql.cassandra._
+import org.apache.spark._
+import org.apache.spark.streaming._
 import org.apache.log4j.{Level, Logger}
 
 object SparkCassandra {
@@ -13,6 +15,7 @@ object SparkCassandra {
     rootLogger.setLevel(Level.ERROR)
     val conf = new SparkConf(true).setAppName("Spark Cassandra Application").set("spark.cassandra.connection.host", "172.17.0.4")
     val sc = new SparkContext(conf)
+    val sqlContext = new org.apache.spark.sql.SQLContext(sc)
     val selectStmt = args(0).split("\\,")
     val k = args(2).toInt
     var rdd = sc.cassandraTable("data", "events").select(selectStmt.map(ColumnName(_)):_*)
@@ -26,7 +29,7 @@ object SparkCassandra {
     }
 
     val output = rdd.keyBy(row => (row.getString("id"))).values
-    System.out.println(output.take(k).mkString(", "))
+    System.out.println(output.take(k).mkString(";"))
     sc.stop()
   }
 }
